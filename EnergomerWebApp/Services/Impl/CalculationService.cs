@@ -6,13 +6,29 @@ using NetTopologySuite.Mathematics;
 namespace EnergomerWebApp.Services.Impl
 {
     public class CalculationService : ICalculationService
-    {
-        private const double EPS = 0.0001;
+    {   
+        private const double EPS = 1e-10;
+        private readonly ILogger<CalculationService> _logger;
+
+        public CalculationService(ILogger<CalculationService> logger)
+        {
+            _logger = logger;
+        }
         public bool CheckField(Field field, GeoCoordinate point)
         {
+            _logger.LogDebug("Field: ", field);
+            _logger.LogDebug("Point: ", point);
+
+            if (field.Locations.Polygon.Contains(point) || field.Locations.Center == point)
+            {
+                return true;
+            }    
+
             var radiusVectors = field.Locations.Polygon.Select(ToVector).ToArray();
             var currentRadiusVector = ToVector(point);
             var sortedRadiusVectors = Sort(radiusVectors);
+
+            _logger.LogDebug("radiusVectors: ", radiusVectors);
 
             if (CheckCoplanarity(sortedRadiusVectors, currentRadiusVector))
             {
@@ -29,18 +45,29 @@ namespace EnergomerWebApp.Services.Impl
             var points = CreateProjectionOnOXY(radiusVectors);
             var currentPoint = CreateProjectionOnOXY(currentRadiusVector);
             var centerPoint = CreateProjectionOnOXY(centerRadiusVector);
-            int crossPoints = 0;
+
+            return PointIsInside(points, currentPoint, centerPoint);
+
+        }
+
+        public bool PointIsInside(Point[] points, Point currentPoint, Point centerPoint)
+        {
+            if (points.Contains(currentPoint) || currentPoint == centerPoint)
+                return true;
+
+            HashSet<Point> crossPoints = new HashSet<Point>();
 
             for (var i = 0; i < points.Count(); i++)
             {
-                if (CrossLines(points[i], points[(i + 1) % points.Count()], currentPoint, centerPoint) != null)
-                    crossPoints++;
+                var resultPoint = CrossLines(points[i], points[(i + 1) % points.Count()], currentPoint, centerPoint);
+                if (resultPoint != null && ResultPointIsOnRay(currentPoint, centerPoint, resultPoint))
+                    crossPoints.Add(resultPoint);
             }
 
-            return crossPoints == 1;
+            return crossPoints.Count == 1;
         }
 
-        private Point? CrossLines(Point p1, Point p2, Point p3, Point p4)
+        public Point? CrossLines2(Point p1, Point p2, Point p3, Point p4)
         {
             double a1 = p2.Y - p1.Y;
             double a2 = p4.Y - p3.Y;
@@ -61,17 +88,51 @@ namespace EnergomerWebApp.Services.Impl
             return null;
         }
 
-        private bool CheckCrossPoint(Point p1, Point p2, Point result)
+        public Point? CrossLines(Point p1, Point p2, Point p3, Point p4)
+        {
+            double k;
+            if (Math.Abs(p2.Y - p1.Y) > EPS)
+            {
+                double q = (p2.X - p1.X) / (p1.Y - p2.Y);
+                double sn = (p3.X - p4.X) + (p3.Y - p4.Y) * q;
+
+                if (Math.Abs(sn) < EPS)
+                    return null;
+
+                double fn = (p3.X - p1.X) + (p3.Y - p1.Y) * q;
+                
+                k = fn / sn;
+            } else
+            {
+                if (Math.Abs(p3.Y - p4.Y) < EPS)
+                    return null;
+
+                k = (p3.Y - p1.Y) / (p3.Y - p4.Y);
+            }
+
+            var result = new Point(p3.X + (p4.X - p3.X) * k, p3.Y + (p4.Y - p3.Y) * k);
+
+            if (PointIsOnSegment(p1, p2, result))
+                return result;
+
+            return null;
+        }
+        private bool PointIsOnSegment(Point p1, Point p2, Point result)
         {
             return Math.Abs(p2.X - p1.X) >= Math.Abs(p2.X - result.X) + Math.Abs(p1.X - result.X)
                 && Math.Abs(p2.Y - p1.Y) >= Math.Abs(p2.Y - result.Y) + Math.Abs(p1.Y - result.Y);
+        }
+
+        private bool ResultPointIsOnRay(Point current, Point center, Point result)
+        {
+            return ((center.X >= current.X && result.X >= current.X) || (center.X <= current.X && result.X <= current.X))
+                && ((center.Y >= current.Y && result.Y >= current.Y) || (center.Y <= current.Y && result.Y <= current.Y));
         }
 
         private Point[] CreateProjectionOnOXY(Vector3D[] radiusVectors)
         {
             return radiusVectors.Select(p => new Point(p.X, p.Y, 0)).ToArray();
         }
-
         private Point CreateProjectionOnOXY(Vector3D radiusVector) => new Point(radiusVector.X, radiusVector.Y, 0);
 
         private bool CheckCoplanarity(Vector3D[] radiusVectors, Vector3D currentRadiusVector)
@@ -87,9 +148,9 @@ namespace EnergomerWebApp.Services.Impl
             return false;
         }
 
-        private bool CheckCoplanarity(Vector3D v1, Vector3D v2, Vector3D v3)
+        public bool CheckCoplanarity(Vector3D v1, Vector3D v2, Vector3D v3)
         {
-            return (v1 * v2).Dot(v3) == 0;
+            return Math.Abs((v1 * v2).Dot(v3)) < EPS;
         }
 
         private Vector3D[] Sort(Vector3D[] vectors)
@@ -111,8 +172,8 @@ namespace EnergomerWebApp.Services.Impl
 
                 if (index != null)
                 {
-                    var tmp = vectors[i];
-                    vectors[i] = vectors[index.Value];
+                    var tmp = vectors[i + 1];
+                    vectors[i + 1] = vectors[index.Value];
                     vectors[index.Value] = tmp;
                 }
             }
@@ -122,7 +183,6 @@ namespace EnergomerWebApp.Services.Impl
 
         private Vector3D ToVector(GeoCoordinate point)
         {
-
             double alfa = point.Longitude * (Math.PI / 180.0);
             double beta = point.Latitude * (Math.PI / 180.0);
             double X = Math.Cos(alfa) * Math.Cos(beta);
