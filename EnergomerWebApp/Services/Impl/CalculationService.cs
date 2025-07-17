@@ -60,32 +60,13 @@ namespace EnergomerWebApp.Services.Impl
             for (var i = 0; i < points.Count(); i++)
             {
                 var resultPoint = CrossLines(points[i], points[(i + 1) % points.Count()], currentPoint, centerPoint);
-                if (resultPoint != null && ResultPointIsOnRay(currentPoint, centerPoint, resultPoint))
+                if (resultPoint != null 
+                    && ResultPointIsOnRay(currentPoint, centerPoint, resultPoint) 
+                    && PointIsOnSegment(points[i], points[(i + 1) % points.Count()], resultPoint))
                     crossPoints.Add(resultPoint);
             }
 
             return crossPoints.Count == 1;
-        }
-
-        public Point? CrossLines2(Point p1, Point p2, Point p3, Point p4)
-        {
-            double a1 = p2.Y - p1.Y;
-            double a2 = p4.Y - p3.Y;
-
-            double b1 = p1.X - p2.X;
-            double b2 = p3.X - p4.X;
-
-            double k = a1 * b2 - a2 * b1;
-
-            if (Math.Abs(k) > EPS)
-            {
-                double c1 = p2.X * p1.Y - p1.X * p2.Y;
-                double c2 = p4.X * p3.Y - p3.X * p3.Y;
-
-                return new Point(-(c1 * b2 - c2 * b1) / k, -(a1 * c2 - a2 * c1) / k);
-            }
-
-            return null;
         }
 
         public Point? CrossLines(Point p1, Point p2, Point p3, Point p4)
@@ -112,10 +93,7 @@ namespace EnergomerWebApp.Services.Impl
 
             var result = new Point(p3.X + (p4.X - p3.X) * k, p3.Y + (p4.Y - p3.Y) * k);
 
-            if (PointIsOnSegment(p1, p2, result))
-                return result;
-
-            return null;
+            return result;
         }
         private bool PointIsOnSegment(Point p1, Point p2, Point result)
         {
@@ -125,8 +103,8 @@ namespace EnergomerWebApp.Services.Impl
 
         private bool ResultPointIsOnRay(Point current, Point center, Point result)
         {
-            return ((center.X >= current.X && result.X >= current.X) || (center.X <= current.X && result.X <= current.X))
-                && ((center.Y >= current.Y && result.Y >= current.Y) || (center.Y <= current.Y && result.Y <= current.Y));
+            return ((center.X >= current.X && current.X >= result.X) || (center.X <= current.X && current.X <= result.X))
+                && ((center.Y >= current.Y && current.Y >= result.Y) || (center.Y <= current.Y && current.Y <= result.Y));
         }
 
         private Point[] CreateProjectionOnOXY(Vector3D[] radiusVectors)

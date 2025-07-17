@@ -29,10 +29,13 @@ namespace EnergomerWebApp.Controllers
         }
 
         [HttpGet("PointInsideFields/{latitude}&{longitude}")]
-        public IEnumerable<DTO.Field> GetFields(double latitude, double longitude)
+        public IActionResult GetFields(double latitude, double longitude)
         {
             GeoCoordinate point = new GeoCoordinate(latitude, longitude);
-            return _fieldService.GetFields(point).ToDto();
+
+            var result = _fieldService.GetFields(point).Select(f => new { f.Id, f.Name }).ToArray();
+
+            return Ok(result.Length == 0 ? false : result);
         }
 
 
