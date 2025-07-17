@@ -21,28 +21,28 @@ namespace EnergomerWebApp.Controllers
             _fieldService = fieldService;
         }
 
-        [HttpGet]
-        public IEnumerable<DTO.Field> Get()
+        [HttpGet("GetFields")]
+        public IEnumerable<DTO.Field> GetFields()
         {
             var fields = _fieldService.GetFields();
             return fields.ToDto();
         }
 
-        [HttpGet("{latitude}&{longitude}")]
-        public IEnumerable<DTO.Field> Get(double latitude, double longitude)
+        [HttpGet("PointInsideFields/{latitude}&{longitude}")]
+        public IEnumerable<DTO.Field> GetFields(double latitude, double longitude)
         {
             GeoCoordinate point = new GeoCoordinate(latitude, longitude);
             return _fieldService.GetFields(point).ToDto();
         }
 
 
-        [HttpGet("{fieldId}")]
+        [HttpGet("GetArea/{fieldId}")]
         public double? GetArea(int fieldId)
         {
             return _fieldService.GetArea(fieldId);
         }
 
-        [HttpGet("{latitude}&{longitude}&{centerId}")]
+        [HttpGet("GetDistance/{latitude}&{longitude}&{centerId}")]
         public double? GetDistance(double latitude, double longitude, int centerId)
         {
             GeoCoordinate point = new GeoCoordinate(latitude, longitude);
