@@ -1,7 +1,6 @@
 ﻿using EnergomerWebApp.Fields;
 using GeoCoordinatePortable;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Mathematics;
 
 namespace EnergomerWebApp.Services.Impl
 {
@@ -14,40 +13,44 @@ namespace EnergomerWebApp.Services.Impl
         {
             _logger = logger;
         }
-        public bool CheckField(Field field, GeoCoordinate point)
+        public bool CheckField(Field field, GeoCoordinate geoPoint)
         {
-            _logger.LogDebug("Field: ", field);
-            _logger.LogDebug("Point: ", point);
+            _logger.LogDebug($"Field: {field}");
+            _logger.LogDebug($"Point: {geoPoint}");
 
-            if (field.Locations.Polygon.Contains(point) || field.Locations.Center == point)
-            {
-                return true;
-            }    
+            var point = ToPoint(geoPoint);
+            var center = ToPoint(field.Locations.Center);
+            var polygon = field.Locations.Polygon.Select(ToPoint).ToArray();
 
-            var radiusVectors = field.Locations.Polygon.Select(ToVector).ToArray();
-            var currentRadiusVector = ToVector(point);
-            var sortedRadiusVectors = Sort(radiusVectors);
+            Sort(polygon);
 
-            _logger.LogDebug("radiusVectors: ", radiusVectors);
-
-            if (CheckCoplanarity(sortedRadiusVectors, currentRadiusVector))
-            {
-                return true;
-            }
-
-            var centerRadiusVector = ToVector(field.Locations.Center);
-
-            return PointIsInside(sortedRadiusVectors, currentRadiusVector, centerRadiusVector);
+            return PointIsInside(polygon, point, center);
         }
 
-        private bool PointIsInside(Vector3D[] radiusVectors, Vector3D currentRadiusVector, Vector3D centerRadiusVector)
+        private void Sort(Point[] coords)
         {
-            var points = CreateProjectionOnOXY(radiusVectors);
-            var currentPoint = CreateProjectionOnOXY(currentRadiusVector);
-            var centerPoint = CreateProjectionOnOXY(centerRadiusVector);
+            for (var i = 0; i < coords.Count() - 1; i++)
+            {
+                int? index = null;
+                double minDistance = 0;
+                for (var j = i + 1; j < coords.Count(); j++)
+                {
+                    var distance = coords[i].Distance(coords[j]);
 
-            return PointIsInside(points, currentPoint, centerPoint);
+                    if (index == null || distance < minDistance)
+                    {
+                        minDistance = distance;
+                        index = j;
+                    }
+                }
 
+                if (index != null)
+                {
+                    var tmp = coords[i + 1];
+                    coords[i + 1] = coords[index.Value];
+                    coords[index.Value] = tmp;
+                }
+            }
         }
 
         public bool PointIsInside(Point[] points, Point currentPoint, Point centerPoint)
@@ -60,114 +63,77 @@ namespace EnergomerWebApp.Services.Impl
             for (var i = 0; i < points.Count(); i++)
             {
                 var resultPoint = CrossLines(points[i], points[(i + 1) % points.Count()], currentPoint, centerPoint);
-                if (resultPoint != null 
-                    && ResultPointIsOnRay(currentPoint, centerPoint, resultPoint) 
-                    && PointIsOnSegment(points[i], points[(i + 1) % points.Count()], resultPoint))
+                if (resultPoint != null)
+                {
                     crossPoints.Add(resultPoint);
+                }
             }
 
-            return crossPoints.Count == 1;
+            return crossPoints.Count % 2 == 0;
         }
+
+        //y = k1 * x + b1
+        //y = k2 * x + b2
+
+        //k1 = (y2 - y1) / (x2 - x1)
+        //k2 = (y4 - y3) / (x4 - x3)
 
         public Point? CrossLines(Point p1, Point p2, Point p3, Point p4)
         {
-            double k;
-            if (Math.Abs(p2.Y - p1.Y) > EPS)
-            {
-                double q = (p2.X - p1.X) / (p1.Y - p2.Y);
-                double sn = (p3.X - p4.X) + (p3.Y - p4.Y) * q;
+            Point result = null;
 
-                if (Math.Abs(sn) < EPS)
+            if (Math.Abs(p2.X - p1.X) < EPS || Math.Abs(p4.X - p3.X) < EPS)
+            {
+                if (Math.Abs(p2.X - p1.X) < EPS && Math.Abs(p4.X - p3.X) < EPS)
                     return null;
 
-                double fn = (p3.X - p1.X) + (p3.Y - p1.Y) * q;
-                
-                k = fn / sn;
-            } else
+                if (Math.Abs(p2.X - p1.X) < EPS)
+                {
+                    double X = p1.X;
+                    double k2 = (p4.Y - p3.Y) / (p4.X - p3.X);
+                    double b2 = p3.Y - k2 * p3.X;
+                    double Y = k2 * X + b2;
+
+                    result = new Point(X, Y);
+
+                } else if (Math.Abs(p4.X - p3.X) < EPS)
+                {
+                    double X = p3.X;
+                    double k1 = (p2.Y - p1.Y) / (p2.X - p1.X);
+                    double b1 = p1.Y - k1 * p1.X;
+                    double Y = k1 * X + b1;
+
+                    result = new Point(X, Y);
+                }
+            }
+            else
             {
-                if (Math.Abs(p3.Y - p4.Y) < EPS)
+                double k1 = (p2.Y - p1.Y) / (p2.X - p1.X);
+                double k2 = (p4.Y - p3.Y) / (p4.X - p3.X);
+
+                if (Math.Abs(k1 - k2) < EPS)
                     return null;
 
-                k = (p3.Y - p1.Y) / (p3.Y - p4.Y);
+                double X = (k2 - k1) / (p1.Y - p3.Y);
+                double b2 = p3.Y - k2 * p3.X;
+                double Y = k2 * X + b2;
+
+                result = new Point(X, Y);
+
             }
 
-            var result = new Point(p3.X + (p4.X - p3.X) * k, p3.Y + (p4.Y - p3.Y) * k);
+            if (result != null && PointIsOnSegment(p1, p2, result) && PointIsOnSegment(p3, p4, result))
+                return result;
 
-            return result;
+            return null;
         }
+
         private bool PointIsOnSegment(Point p1, Point p2, Point result)
         {
-            return Math.Abs(p2.X - p1.X) >= Math.Abs(p2.X - result.X) + Math.Abs(p1.X - result.X)
-                && Math.Abs(p2.Y - p1.Y) >= Math.Abs(p2.Y - result.Y) + Math.Abs(p1.Y - result.Y);
+            return Math.Min(p1.X, p2.X) <= result.X && result.X <= Math.Max(p1.X, p2.X) && Math.Min(p1.Y, p2.Y) <= result.Y && result.Y <= Math.Max(p1.Y, p2.Y);
         }
 
-        private bool ResultPointIsOnRay(Point current, Point center, Point result)
-        {
-            return ((center.X >= current.X && current.X >= result.X) || (center.X <= current.X && current.X <= result.X))
-                && ((center.Y >= current.Y && current.Y >= result.Y) || (center.Y <= current.Y && current.Y <= result.Y));
-        }
-
-        private Point[] CreateProjectionOnOXY(Vector3D[] radiusVectors)
-        {
-            return radiusVectors.Select(p => new Point(p.X, p.Y, 0)).ToArray();
-        }
-        private Point CreateProjectionOnOXY(Vector3D radiusVector) => new Point(radiusVector.X, radiusVector.Y, 0);
-
-        private bool CheckCoplanarity(Vector3D[] radiusVectors, Vector3D currentRadiusVector)
-        {
-            for (int i = 0; i < radiusVectors.Count(); i++)
-            {
-                if (CheckCoplanarity(radiusVectors[i], radiusVectors[(i + 1) % radiusVectors.Count()], currentRadiusVector))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public bool CheckCoplanarity(Vector3D v1, Vector3D v2, Vector3D v3)
-        {
-            return Math.Abs((v1 * v2).Dot(v3)) < EPS;
-        }
-
-        private Vector3D[] Sort(Vector3D[] vectors)
-        {
-            for (var i = 0; i < vectors.Count() - 1; i++)
-            {
-                int? index = null;
-                double minDistance = 0;
-                for (var j = i + 1; j < vectors.Count(); j++)
-                {
-                    var distance = (vectors[i] - vectors[j]).Length();
-
-                    if (index == null || distance < minDistance)
-                    {
-                        minDistance = distance;
-                        index = j;
-                    }
-                }
-
-                if (index != null)
-                {
-                    var tmp = vectors[i + 1];
-                    vectors[i + 1] = vectors[index.Value];
-                    vectors[index.Value] = tmp;
-                }
-            }
-
-            return vectors;
-        }
-
-        private Vector3D ToVector(GeoCoordinate point)
-        {
-            double alfa = point.Longitude * (Math.PI / 180.0);
-            double beta = point.Latitude * (Math.PI / 180.0);
-            double X = Math.Cos(alfa) * Math.Cos(beta);
-            double Y = Math.Sin(alfa) * Math.Cos(beta);
-            double Z = Math.Sin(beta);
-
-            return new Vector3D(X, Y, Z);
-        }
+        private Point ToPoint(GeoCoordinate geoPoint) => new Point(geoPoint.Latitude, geoPoint.Longitude);
+        
     }
 }
