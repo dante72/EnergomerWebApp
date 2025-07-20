@@ -1,5 +1,6 @@
 using EnergomerWebApp.Services;
 using EnergomerWebApp.Services.Impl;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EnergomerWebApp
 {
@@ -11,7 +12,7 @@ namespace EnergomerWebApp
 
             // Add services to the container.
 
-            builder.Services.AddSingleton<IHashDataService, HashDataService>();
+            builder.Services.AddScoped<IDataService, DataService>();
             builder.Services.AddScoped<IFieldService, FieldService>();
             builder.Services.AddTransient<ICalculationService, CalculationService>();
 

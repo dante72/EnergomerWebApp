@@ -2,9 +2,9 @@
 
 namespace EnergomerWebApp.Services.Impl
 {
-    public class HashDataService : IHashDataService
+    public class DataService : IDataService
     {
-        private readonly ILogger<HashDataService> _logger;
+        private readonly ILogger<DataService> _logger;
         private const string CENTROIDS_PATH = @".\Database\source\centroids.kml";
         private const string FIELDS_PATH = @".\Database\source\fields.kml";
 
@@ -15,7 +15,7 @@ namespace EnergomerWebApp.Services.Impl
         public Database.Xml.Centroids.kml Centroids => lazyCentroids.Value;
         public Database.Xml.Fields.kml Fields => lazyFields.Value;
 
-        public HashDataService(ILogger<HashDataService> logger)
+        public DataService(ILogger<DataService> logger)
         {
             _logger = logger;
         }
@@ -28,17 +28,6 @@ namespace EnergomerWebApp.Services.Impl
         private async static Task<Database.Xml.Fields.kml> GetFields()
         {
             return await KmlReader.ReadFields(FIELDS_PATH);
-        }
-
-        public Task UpdateData()
-        {
-            lock (this)
-            {
-                lazyCentroids = new(() => GetCentroids().Result);
-                lazyFields = new(() => GetFields().Result);
-            }
-
-            return Task.CompletedTask;
         }
     }
 }

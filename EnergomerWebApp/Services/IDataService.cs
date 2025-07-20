@@ -1,9 +1,8 @@
 ﻿namespace EnergomerWebApp.Services
 {
-    public interface IHashDataService
+    public interface IDataService
     {
         Database.Xml.Centroids.kml Centroids {  get; }
         Database.Xml.Fields.kml Fields { get; }
-        Task UpdateData();
     }
 }

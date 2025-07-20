@@ -6,9 +6,9 @@ namespace EnergomerWebApp.Services.Impl
     public class FieldService : IFieldService
     {
         private readonly ILogger<FieldService> _logger;
-        private readonly IHashDataService _hashData;
+        private readonly IDataService _hashData;
         private readonly ICalculationService _calculationService;
-        public FieldService(ILogger<FieldService> logger, IHashDataService hashData, ICalculationService calculationService)
+        public FieldService(ILogger<FieldService> logger, IDataService hashData, ICalculationService calculationService)
         {
             _logger = logger;
             _hashData = hashData;
