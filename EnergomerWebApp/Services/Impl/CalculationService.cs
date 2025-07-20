@@ -6,7 +6,7 @@ namespace EnergomerWebApp.Services.Impl
 {
     public class CalculationService : ICalculationService
     {   
-        private const double EPS = 1e-5;
+        private const double EPS = 1e-14;
         private readonly ILogger<CalculationService> _logger;
 
         public CalculationService(ILogger<CalculationService> logger)
