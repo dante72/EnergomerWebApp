@@ -6,7 +6,7 @@ namespace EnergomerWebApp.Services.Impl
 {
     public class CalculationService : ICalculationService
     {   
-        private const double EPS = 1e-10;
+        private const double EPS = 1e-5;
         private readonly ILogger<CalculationService> _logger;
 
         public CalculationService(ILogger<CalculationService> logger)
@@ -55,21 +55,23 @@ namespace EnergomerWebApp.Services.Impl
 
         public bool PointIsInside(Point[] points, Point currentPoint, Point centerPoint)
         {
-            if (points.Contains(currentPoint) || currentPoint == centerPoint)
+            if (points.Any(p => Math.Abs(currentPoint.Distance(p)) < EPS) || Math.Abs(currentPoint.Distance(centerPoint)) < EPS)
                 return true;
 
-            HashSet<Point> crossPoints = new HashSet<Point>();
+            List<Point> crossPoints = new List<Point>();
 
             for (var i = 0; i < points.Count(); i++)
             {
-                var resultPoint = CrossLines(points[i], points[(i + 1) % points.Count()], currentPoint, centerPoint);
-                if (resultPoint != null)
+                var p1 = points[i];
+                var p2 = points[(i + 1) % points.Count()];
+                var resultPoint = CrossLines(p1, p2, currentPoint, centerPoint);
+                if (resultPoint != null && PointIsOnSegment(p1, p2, resultPoint) && PointIsOnRay(centerPoint, currentPoint, resultPoint))
                 {
                     crossPoints.Add(resultPoint);
                 }
             }
 
-            return crossPoints.Count % 2 == 0;
+            return crossPoints.Count % 2 == 1;
         }
 
         //y = k1 * x + b1
@@ -122,7 +124,7 @@ namespace EnergomerWebApp.Services.Impl
 
             }
 
-            if (result != null && PointIsOnSegment(p1, p2, result) && PointIsOnSegment(p3, p4, result))
+            if (result != null)
                 return result;
 
             return null;
@@ -131,6 +133,12 @@ namespace EnergomerWebApp.Services.Impl
         private bool PointIsOnSegment(Point p1, Point p2, Point result)
         {
             return Math.Min(p1.X, p2.X) <= result.X && result.X <= Math.Max(p1.X, p2.X) && Math.Min(p1.Y, p2.Y) <= result.Y && result.Y <= Math.Max(p1.Y, p2.Y);
+        }
+
+        private bool PointIsOnRay(Point center, Point current, Point result)
+        {
+            return (current.X >= result.X && current.X >= center.X || current.X <= result.X && current.X <= center.X)
+                && (current.Y >= result.Y && current.Y >= center.Y || current.Y <= result.Y && current.Y <= center.Y);
         }
 
         private Point ToPoint(GeoCoordinate geoPoint) => new Point(geoPoint.Latitude, geoPoint.Longitude);
