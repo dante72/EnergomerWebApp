@@ -1,7 +1,7 @@
-﻿using EnergomerWebApp.Fields;
+﻿using EnergomerWebApp.Domain.Fields;
 using GeoCoordinatePortable;
 
-namespace EnergomerWebApp.Services
+namespace EnergomerWebApp.Application.Services
 {
     public interface ICalculationService
     {

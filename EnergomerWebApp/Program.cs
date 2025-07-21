@@ -1,6 +1,7 @@
-using EnergomerWebApp.Services;
-using EnergomerWebApp.Services.Impl;
-using Microsoft.Extensions.DependencyInjection;
+using EnergomerWebApp.Application.Services;
+using EnergomerWebApp.Application.Services.Impl;
+using EnergomerWebApp.Infrastructure;
+using EnergomerWebApp.Infrastructure.Impl;
 
 namespace EnergomerWebApp
 {
@@ -12,9 +13,11 @@ namespace EnergomerWebApp
 
             // Add services to the container.
 
-            builder.Services.AddScoped<IDataService, DataService>();
             builder.Services.AddScoped<IFieldService, FieldService>();
             builder.Services.AddTransient<ICalculationService, CalculationService>();
+
+            builder.Services.AddSingleton<IRepository<Database.Xml.Centroids.kml>, CentroidRepository>();
+            builder.Services.AddSingleton<IRepository<Database.Xml.Fields.kml>, FieldRepository>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

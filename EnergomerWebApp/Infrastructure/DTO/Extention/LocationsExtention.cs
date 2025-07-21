@@ -2,7 +2,7 @@
 {
     public static class LocationsExtention
     {
-        public static Locations ToDto(this Fields.Locations locations)
+        public static Locations ToDto(this Domain.Fields.Locations locations)
         {
             return new Locations()
             {

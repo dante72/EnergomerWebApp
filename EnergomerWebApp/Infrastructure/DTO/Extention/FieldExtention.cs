@@ -4,7 +4,7 @@ namespace EnergomerWebApp.DTO.Extention
 {
     public static class FieldExtention
     {
-        public static Field ToDto(this Fields.Field field)
+        public static Field ToDto(this Domain.Fields.Field field)
         {
             return new Field()
             {
@@ -15,7 +15,7 @@ namespace EnergomerWebApp.DTO.Extention
             };
         }
 
-        public static Field[] ToDto(this Fields.Field[] fields)
+        public static Field[] ToDto(this Domain.Fields.Field[] fields)
         {
             return fields.Select(f => f.ToDto()).ToArray();
         }

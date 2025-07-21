@@ -1,12 +1,9 @@
-using EnergomerWebApp.Database;
+using EnergomerWebApp.Application.Services;
 using EnergomerWebApp.DTO.Extention;
-using EnergomerWebApp.Fields;
-using EnergomerWebApp.Services;
 using GeoCoordinatePortable;
 using Microsoft.AspNetCore.Mvc;
-using System.Xml.Linq;
 
-namespace EnergomerWebApp.Controllers
+namespace EnergomerWebApp.Presentation.Controllers
 {
     [ApiController]
     [Route("[controller]")]

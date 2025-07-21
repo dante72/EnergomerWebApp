@@ -1,5 +1,5 @@
-using EnergomerWebApp.Fields;
-using EnergomerWebApp.Services.Impl;
+using EnergomerWebApp.Application.Services.Impl;
+using EnergomerWebApp.Domain.Fields;
 using GeoCoordinatePortable;
 using Microsoft.Extensions.Logging;
 using Moq;

@@ -1,23 +1,35 @@
-﻿using EnergomerWebApp.Fields;
+﻿using EnergomerWebApp.Domain.Fields;
+using EnergomerWebApp.Infrastructure;
 using GeoCoordinatePortable;
 
-namespace EnergomerWebApp.Services.Impl
+namespace EnergomerWebApp.Application.Services.Impl
 {
     public class FieldService : IFieldService
     {
         private readonly ILogger<FieldService> _logger;
-        private readonly IDataService _hashData;
+        private readonly IRepository<Database.Xml.Centroids.kml> _centroids;
+        private readonly IRepository<Database.Xml.Fields.kml> _fields;
         private readonly ICalculationService _calculationService;
-        public FieldService(ILogger<FieldService> logger, IDataService hashData, ICalculationService calculationService)
+
+        private Lazy<Database.Xml.Centroids.kml> lazyCentroids;
+        private Lazy<Database.Xml.Fields.kml> lazyFields;
+        public FieldService(
+            ILogger<FieldService> logger,
+            IRepository<Database.Xml.Centroids.kml> centroids,
+            IRepository<Database.Xml.Fields.kml> fields,
+            ICalculationService calculationService)
         {
             _logger = logger;
-            _hashData = hashData;
+            _fields = fields;
+            _centroids = centroids;
             _calculationService = calculationService;
+            lazyCentroids = new(_centroids.Get().Result);
+            lazyFields = new(_fields.Get().Result);
         }
 
         public Field[] GetFields()
         {
-            return _hashData.Fields.Placemark.Select(pm => new Field()
+            return lazyFields.Value.Placemark.Select(pm => new Field()
             {
                 Id = pm.Id,
                 Name = pm.name,
@@ -32,7 +44,7 @@ namespace EnergomerWebApp.Services.Impl
 
         private GeoCoordinate GetCenter(int id)
         {
-            var placemark = _hashData.Centroids.Placemark
+            var placemark = lazyCentroids.Value.Placemark
                 .First(pm => pm.Id == id);
 
             return GetGeoCoordinates(placemark.Point.coordinates)[0];
@@ -56,7 +68,7 @@ namespace EnergomerWebApp.Services.Impl
 
         public double? GetArea(int id)
         {
-            return _hashData.Fields.Placemark.FirstOrDefault(pm => pm.Id == id)?.Size;
+            return lazyFields.Value.Placemark.FirstOrDefault(pm => pm.Id == id)?.Size;
         }
 
         public double Distance(GeoCoordinate point, int centerId)
