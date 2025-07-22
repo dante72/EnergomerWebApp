@@ -1,5 +1,5 @@
-using EnergomerWebApp.Application.Services;
-using EnergomerWebApp.Application.Services.Impl;
+using EnergomerWebApp.Domain.Service;
+using EnergomerWebApp.Domain.Service.Impl;
 using EnergomerWebApp.Infrastructure;
 using EnergomerWebApp.Infrastructure.Impl;
 
@@ -13,7 +13,8 @@ namespace EnergomerWebApp
 
             // Add services to the container.
 
-            builder.Services.AddScoped<IFieldService, FieldService>();
+            builder.Services.AddScoped<Application.Services.IFieldService, Application.Services.Impl.FieldService>();
+            builder.Services.AddScoped<Domain.Service.IFieldService, Domain.Service.Impl.FieldService>();
             builder.Services.AddTransient<ICalculationService, CalculationService>();
 
             builder.Services.AddSingleton<IRepository<Database.Xml.Centroids.kml>, CentroidRepository>();

@@ -1,8 +1,8 @@
-﻿using EnergomerWebApp.Domain.Fields;
+﻿using EnergomerWebApp.Domain.Entity;
 using GeoCoordinatePortable;
 using NetTopologySuite.Geometries;
 
-namespace EnergomerWebApp.Application.Services.Impl
+namespace EnergomerWebApp.Domain.Service.Impl
 {
     public class CalculationService : ICalculationService
     {   

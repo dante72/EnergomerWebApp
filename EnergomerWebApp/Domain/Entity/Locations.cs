@@ -1,6 +1,6 @@
 ﻿using GeoCoordinatePortable;
 
-namespace EnergomerWebApp.Domain.Fields
+namespace EnergomerWebApp.Domain.Entity
 {
     public class Locations
     {

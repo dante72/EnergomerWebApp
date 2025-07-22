@@ -1,4 +1,4 @@
-﻿using EnergomerWebApp.Domain.Fields;
+﻿using EnergomerWebApp.Domain.Entity;
 using GeoCoordinatePortable;
 
 namespace EnergomerWebApp.Application.Services

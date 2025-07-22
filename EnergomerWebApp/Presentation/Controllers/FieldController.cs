@@ -1,4 +1,5 @@
 using EnergomerWebApp.Application.Services;
+using EnergomerWebApp.DTO;
 using EnergomerWebApp.DTO.Extention;
 using GeoCoordinatePortable;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace EnergomerWebApp.Presentation.Controllers
         }
 
         [HttpGet("GetFields")]
-        public IEnumerable<DTO.Field> GetFields()
+        public IEnumerable<Field> GetFields()
         {
             var fields = _fieldService.GetFields();
             return fields.ToDto();

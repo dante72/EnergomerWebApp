@@ -1,6 +1,4 @@
-﻿using GeoCoordinatePortable;
-
-namespace EnergomerWebApp.DTO
+﻿namespace EnergomerWebApp.DTO
 {
     public class Locations
     {

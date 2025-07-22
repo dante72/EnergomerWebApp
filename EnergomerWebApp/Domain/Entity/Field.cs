@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace EnergomerWebApp.Domain.Fields
+﻿namespace EnergomerWebApp.Domain.Entity
 {
     public class Field
     {

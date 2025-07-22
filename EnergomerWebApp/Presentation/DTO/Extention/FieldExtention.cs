@@ -1,10 +1,8 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace EnergomerWebApp.DTO.Extention
+﻿namespace EnergomerWebApp.DTO.Extention
 {
     public static class FieldExtention
     {
-        public static Field ToDto(this Domain.Fields.Field field)
+        public static Field ToDto(this Domain.Entity.Field field)
         {
             return new Field()
             {
@@ -15,7 +13,7 @@ namespace EnergomerWebApp.DTO.Extention
             };
         }
 
-        public static Field[] ToDto(this Domain.Fields.Field[] fields)
+        public static Field[] ToDto(this Domain.Entity.Field[] fields)
         {
             return fields.Select(f => f.ToDto()).ToArray();
         }

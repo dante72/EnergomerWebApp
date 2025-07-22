@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
-
-namespace EnergomerWebApp.Infrastructure
+﻿namespace EnergomerWebApp.Infrastructure
 {
     public interface IRepository<T>
     {
