@@ -82,7 +82,7 @@ namespace EnergomerWebApp.Domain.Service.Impl
 
         public Point? CrossLines(Point p1, Point p2, Point p3, Point p4)
         {
-            Point result = null;
+            Point? result = null;
 
             if (Math.Abs(p2.X - p1.X) < EPS || Math.Abs(p4.X - p3.X) < EPS)
             {
@@ -124,10 +124,7 @@ namespace EnergomerWebApp.Domain.Service.Impl
 
             }
 
-            if (result != null)
-                return result;
-
-            return null;
+            return result;
         }
 
         private bool PointIsOnSegment(Point p1, Point p2, Point result)
