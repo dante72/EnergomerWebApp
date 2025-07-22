@@ -1,7 +1,7 @@
 ﻿using EnergomerWebApp.Database.Xml.Fields;
+using EnergomerWebApp.Infrastructure.Database.Xml;
 
-
-namespace EnergomerWebApp.Infrastructure.Impl
+namespace EnergomerWebApp.Infrastructure.Repository.Impl
 {
     public class FieldRepository : IRepository<kml>
     {

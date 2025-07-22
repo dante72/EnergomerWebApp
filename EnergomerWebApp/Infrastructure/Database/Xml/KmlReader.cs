@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace EnergomerWebApp.Infrastructure.Impl
+namespace EnergomerWebApp.Infrastructure.Database.Xml
 {
     public class KmlReader
     {

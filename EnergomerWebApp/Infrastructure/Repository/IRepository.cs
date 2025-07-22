@@ -1,4 +1,4 @@
-﻿namespace EnergomerWebApp.Infrastructure
+﻿namespace EnergomerWebApp.Infrastructure.Repository
 {
     public interface IRepository<T>
     {

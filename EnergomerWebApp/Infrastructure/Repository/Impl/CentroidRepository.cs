@@ -1,6 +1,7 @@
 ﻿using EnergomerWebApp.Database.Xml.Centroids;
+using EnergomerWebApp.Infrastructure.Database.Xml;
 
-namespace EnergomerWebApp.Infrastructure.Impl
+namespace EnergomerWebApp.Infrastructure.Repository.Impl
 {
     public class CentroidRepository : IRepository<kml>
     {

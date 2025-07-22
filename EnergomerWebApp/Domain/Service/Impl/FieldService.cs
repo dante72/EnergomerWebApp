@@ -1,5 +1,5 @@
 ﻿using EnergomerWebApp.Domain.Entity;
-using EnergomerWebApp.Infrastructure;
+using EnergomerWebApp.Infrastructure.Repository;
 using GeoCoordinatePortable;
 
 namespace EnergomerWebApp.Domain.Service.Impl

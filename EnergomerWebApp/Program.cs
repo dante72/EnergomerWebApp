@@ -1,7 +1,7 @@
 using EnergomerWebApp.Domain.Service;
 using EnergomerWebApp.Domain.Service.Impl;
-using EnergomerWebApp.Infrastructure;
-using EnergomerWebApp.Infrastructure.Impl;
+using EnergomerWebApp.Infrastructure.Repository;
+using EnergomerWebApp.Infrastructure.Repository.Impl;
 
 namespace EnergomerWebApp
 {
