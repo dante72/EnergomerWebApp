@@ -2,6 +2,7 @@ using EnergomerWebApp.Domain.Service;
 using EnergomerWebApp.Domain.Service.Impl;
 using EnergomerWebApp.Infrastructure.Repository;
 using EnergomerWebApp.Infrastructure.Repository.Impl;
+using EnergomerWebApp.Presentation.Exceptions;
 
 namespace EnergomerWebApp
 {
@@ -36,8 +37,9 @@ namespace EnergomerWebApp
 
             app.UseAuthorization();
 
-
             app.MapControllers();
+
+            app.UseExceptionHandlerMiddleware();
 
             app.Run();
         }

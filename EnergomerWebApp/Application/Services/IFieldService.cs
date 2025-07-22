@@ -7,7 +7,7 @@ namespace EnergomerWebApp.Application.Services
     {
         Field[] GetFields();
 
-        double? GetArea(int id);
+        double GetArea(int id);
 
         double Distance(GeoCoordinate point, int centerId);
 

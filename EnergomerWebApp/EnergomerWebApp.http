@@ -7,3 +7,13 @@ Accept: application/json
 
 GET {{EnergomerWebApp_HostAddress}}/Field/PointInsideFields/41.3380610642585&45.6962567581079
 Accept: application/json
+
+###
+
+GET {{EnergomerWebApp_HostAddress}}/Field/GetArea/-1
+Accept: application/json
+
+###
+
+GET {{EnergomerWebApp_HostAddress}}/Field/GetArea/2
+Accept: application/json

@@ -22,16 +22,24 @@ namespace EnergomerWebApp.Application.Services.Impl
 
         public Field[] GetFields() => _fieldService.GetFields().ToArray();
 
-        public double? GetArea(int id)
+        public double GetArea(int id)
         {
-            return _fieldService.GetFields().FirstOrDefault(pm => pm.Id == id)?.Size;
+            var field = _fieldService.GetFields().FirstOrDefault(pm => pm.Id == id);
+
+            if (field == null)
+                throw new ArgumentException($"Field with id = {id} not found");
+
+            return field.Size;
         }
 
         public double Distance(GeoCoordinate point, int centerId)
         {
             var center = _fieldService.GetFields().FirstOrDefault(pm => pm.Id == centerId);
 
-            return point.GetDistanceTo(center?.Locations.Center);
+            if (center == null)
+                throw new ArgumentException($"Center with id = {centerId} not found");
+
+            return point.GetDistanceTo(center.Locations.Center);
         }
 
         public Field[] GetFields(GeoCoordinate point)
