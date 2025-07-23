@@ -55,9 +55,6 @@ namespace EnergomerWebApp.Domain.Service.Impl
 
         public bool PointIsInside(Point[] points, Point currentPoint, Point centerPoint)
         {
-            if (points.Any(p => Math.Abs(currentPoint.Distance(p)) < EPS) || Math.Abs(currentPoint.Distance(centerPoint)) < EPS)
-                return true;
-
             List<Point> crossPoints = new List<Point>();
 
             for (var i = 0; i < points.Count(); i++)
@@ -65,9 +62,16 @@ namespace EnergomerWebApp.Domain.Service.Impl
                 var p1 = points[i];
                 var p2 = points[(i + 1) % points.Count()];
                 var resultPoint = CrossLines(p1, p2, currentPoint, centerPoint);
-                if (resultPoint != null && PointIsOnSegment(p1, p2, resultPoint) && PointIsOnRay(centerPoint, currentPoint, resultPoint))
+
+                if (resultPoint != null)
                 {
-                    crossPoints.Add(resultPoint);
+                    if (PointIsOnBorder(p1, p2, resultPoint, currentPoint))
+                        return true;
+                    
+                    if (PointIsOnSegment(p1, p2, resultPoint) && PointIsOnRay(currentPoint, resultPoint))
+                    {
+                        crossPoints.Add(resultPoint);
+                    }
                 }
             }
 
@@ -127,15 +131,24 @@ namespace EnergomerWebApp.Domain.Service.Impl
             return result;
         }
 
+        private bool PointIsOnBorder(Point p1, Point p2, Point result, Point current)
+        {
+            return PointIsOnSegment(p1, p2, result) && PointIsEquals(result, current);
+        }
+
+        private bool PointIsEquals(Point p1, Point p2)
+        {
+            return Math.Abs(p1.X - p2.X) < EPS && Math.Abs(p1.Y - p2.Y) < EPS;
+        }
+
         private bool PointIsOnSegment(Point p1, Point p2, Point result)
         {
             return Math.Min(p1.X, p2.X) <= result.X && result.X <= Math.Max(p1.X, p2.X) && Math.Min(p1.Y, p2.Y) <= result.Y && result.Y <= Math.Max(p1.Y, p2.Y);
         }
 
-        private bool PointIsOnRay(Point center, Point current, Point result)
+        private bool PointIsOnRay(Point current, Point result)
         {
-            return (current.X >= result.X && current.X >= center.X || current.X <= result.X && current.X <= center.X)
-                && (current.Y >= result.Y && current.Y >= center.Y || current.Y <= result.Y && current.Y <= center.Y);
+            return current.X >= result.X && current.Y >= result.Y;
         }
 
         private Point ToPoint(GeoCoordinate geoPoint) => new Point(geoPoint.Latitude, geoPoint.Longitude);
